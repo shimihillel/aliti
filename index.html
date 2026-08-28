@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#F8EFE4" />
+<title>עליתי?</title>
+
+<link rel="icon" type="image/png" href="icon.png" />
+<link rel="apple-touch-icon" href="icon.png" />
+<link rel="manifest" href="manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="עליתי?" />
+
+<style>
+  :root{
+    --bg:#f8efe4;
+    --card:#fff9f2;
+    --ink:#5a342a;
+    --muted:#8f766a;
+    --accent:#c86650;
+    --accent-dark:#a94d3c;
+    --green:#7d8d62;
+    --line:#ead8ca;
+    --shadow:0 14px 35px rgba(94,55,40,.10);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(255,255,255,.75), transparent 32%),
+      linear-gradient(180deg,#fbf2e8 0%,var(--bg) 100%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Arial",sans-serif;
+  }
+  .app{
+    width:min(100%,460px);
+    margin:0 auto;
+    min-height:100vh;
+    padding:22px 18px calc(26px + env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  header{
+    text-align:center;
+    padding-top:8px;
+  }
+  .title{
+    margin:0;
+    font-size:44px;
+    line-height:1;
+    letter-spacing:-1px;
+    font-weight:850;
+    color:#7c3e34;
+  }
+  .scale-icon{
+    margin:14px auto 0;
+    width:64px;height:56px;
+    border:3px solid #d6a28f;
+    border-radius:16px;
+    background:#efb1a0;
+    position:relative;
+    box-shadow:inset 0 0 0 4px rgba(255,255,255,.28);
+  }
+  .scale-icon:before{
+    content:"";
+    position:absolute;
+    top:8px;left:50%;
+    width:26px;height:12px;
+    transform:translateX(-50%);
+    border:2px solid #9f705f;
+    border-bottom:none;
+    border-radius:22px 22px 0 0;
+    background:#fff4ea;
+  }
+  .scale-icon:after{
+    content:"?";
+    position:absolute;
+    inset:19px 0 auto 0;
+    font-weight:900;
+    font-size:24px;
+    color:#9f493d;
+  }
+  .card{
+    background:rgba(255,249,242,.88);
+    border:1px solid rgba(210,174,154,.38);
+    box-shadow:var(--shadow);
+    border-radius:28px;
+    padding:24px 20px 20px;
+    backdrop-filter:blur(8px);
+  }
+  .latest{
+    text-align:center;
+  }
+  .weight-row{
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:8px;
+  }
+  .weight{
+    font-size:88px;
+    line-height:.95;
+    font-weight:780;
+    letter-spacing:-4px;
+    color:var(--accent);
+  }
+  .kg{
+    font-size:20px;
+    font-weight:800;
+    padding-bottom:12px;
+  }
+  .date{
+    color:var(--muted);
+    font-size:16px;
+    margin-top:10px;
+  }
+  .delta{
+    margin-top:14px;
+    font-size:17px;
+    font-weight:700;
+    color:var(--green);
+  }
+  .delta.up{color:var(--accent-dark)}
+  .delta.same{color:var(--muted)}
+  .chart-wrap{
+    margin-top:22px;
+    background:rgba(255,255,255,.2);
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:14px 10px 6px;
+  }
+  svg{width:100%;height:230px;overflow:visible}
+  .axis{stroke:#d8c6ba;stroke-width:1}
+  .grid{stroke:#eadbd1;stroke-width:1;stroke-dasharray:4 5}
+  .trend{fill:none;stroke:var(--accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+  .dot{fill:var(--accent);stroke:#fff8f1;stroke-width:3}
+  .label{fill:#866d62;font-size:11px}
+  .value-label{fill:#6d4e42;font-size:11px;font-weight:700}
+  .add{
+    width:100%;
+    margin-top:20px;
+    border:0;
+    border-radius:20px;
+    background:linear-gradient(180deg,#d87359,#bd5a46);
+    color:white;
+    font-size:20px;
+    font-weight:850;
+    padding:17px 18px;
+    box-shadow:0 7px 0 #a94d3c, 0 14px 24px rgba(166,77,60,.18);
+    cursor:pointer;
+  }
+  .add:active{transform:translateY(4px);box-shadow:0 3px 0 #a94d3c}
+  .history-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:850;
+    margin-bottom:10px;
+  }
+  .history{
+    display:grid;
+    gap:8px;
+  }
+  .item{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:10px;
+    align-items:center;
+    padding:11px 0;
+    border-bottom:1px solid #eadbd1;
+  }
+  .item:last-child{border-bottom:0}
+  .item .d{color:var(--muted);font-size:14px}
+  .item .w{font-weight:800}
+  .mini{
+    border:0;
+    background:transparent;
+    color:#9d7667;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .empty{
+    color:var(--muted);
+    text-align:center;
+    padding:14px 0 4px;
+  }
+
+  .backup-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .backup-btn{
+    border:1px solid #dfc7b8;
+    background:#fffaf5;
+    color:var(--ink);
+    border-radius:16px;
+    padding:13px 12px;
+    font-size:15px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .backup-btn:active{transform:translateY(1px)}
+  .backup-note{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:12px;
+    text-align:center;
+    line-height:1.45;
+  }
+
+  dialog{
+    width:min(calc(100% - 32px),420px);
+    border:0;
+    border-radius:28px;
+    padding:0;
+    background:var(--card);
+    color:var(--ink);
+    box-shadow:0 30px 90px rgba(70,35,20,.28);
+  }
+  dialog::backdrop{background:rgba(62,39,30,.32);backdrop-filter:blur(3px)}
+  .modal{padding:24px}
+  .modal h2{margin:0 0 5px;font-size:26px}
+  .modal p{margin:0 0 18px;color:var(--muted)}
+  .field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border:1px solid #dfc7b8;
+    background:#fffaf5;
+    border-radius:18px;
+    padding:10px 14px;
+    direction:ltr;
+  }
+  input{
+    width:100%;
+    border:0;
+    outline:0;
+    background:transparent;
+    font-size:34px;
+    font-weight:800;
+    color:var(--ink);
+  }
+  .field span{font-weight:800;color:var(--muted)}
+  .modal-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:16px;
+  }
+  .primary,.secondary{
+    border:0;border-radius:16px;padding:13px;font-size:17px;font-weight:800;cursor:pointer;
+  }
+  .primary{background:var(--accent);color:white}
+  .secondary{background:#efe2d8;color:var(--ink)}
+  .note{
+    text-align:center;
+    color:#a68d80;
+    font-size:12px;
+    margin-top:auto;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 class="title">עליתי?</h1>
+    <div class="scale-icon" aria-hidden="true"></div>
+  </header>
+
+  <section class="card latest">
+    <div class="weight-row">
+      <div class="weight" id="latestWeight">—</div>
+      <div class="kg">ק״ג</div>
+    </div>
+    <div class="date" id="latestDate">עוד אין שקילות</div>
+    <div class="delta same" id="delta">נכניס את הראשונה?</div>
+
+    <div class="chart-wrap">
+      <svg id="chart" viewBox="0 0 360 230" role="img" aria-label="גרף משקל"></svg>
+    </div>
+
+    <button class="add" id="addBtn">＋ שקילה חדשה</button>
+  </section>
+
+  <section class="card">
+    <div class="history-title">
+      <span>השקילות שלי</span>
+      <span style="font-size:13px;color:var(--muted)" id="count"></span>
+    </div>
+    <div id="history" class="history"></div>
+  </section>
+
+  <section class="card backup-card">
+    <div class="history-title">
+      <span>גיבוי ושחזור</span>
+    </div>
+    <div class="backup-grid">
+      <button class="backup-btn" id="backupBtn">הורדת גיבוי</button>
+      <button class="backup-btn" id="restoreBtn">שחזור מגיבוי</button>
+      <input type="file" id="restoreInput" accept="application/json,.json" hidden />
+    </div>
+    <div class="backup-note">הגיבוי שומר את כל השקילות שלך בקובץ JSON קטן.</div>
+  </section>
+
+  <div class="note">נשמר רק במכשיר שלך ♥</div>
+</div>
+
+<dialog id="weightDialog">
+  <form method="dialog" class="modal" id="weightForm">
+    <h2 id="dialogTitle">שקילה חדשה</h2>
+    <p>נו, כמה יצא?</p>
+    <div class="field">
+      <input id="weightInput" type="number" inputmode="decimal" min="20" max="300" step="0.1" placeholder="60.7" required />
+      <span>kg</span>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary" value="cancel" type="button" id="cancelBtn">ביטול</button>
+      <button class="primary" value="default" type="submit">שמירה</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const STORAGE_KEY = 'aliti-weights-v1';
+let entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let editingId = null;
+
+const $ = s => document.querySelector(s);
+const latestWeight = $('#latestWeight');
+const latestDate = $('#latestDate');
+const deltaEl = $('#delta');
+const historyEl = $('#history');
+const countEl = $('#count');
+const dialog = $('#weightDialog');
+const input = $('#weightInput');
+const dialogTitle = $('#dialogTitle');
+
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+function fmtDate(iso){
+  const d = new Date(iso);
+  return new Intl.DateTimeFormat('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'}).format(d);
+}
+function sortEntries(){
+  entries.sort((a,b)=>new Date(a.date)-new Date(b.date));
+}
+function render(){
+  sortEntries();
+  countEl.textContent = entries.length ? `${entries.length} שקילות` : '';
+
+  if(!entries.length){
+    latestWeight.textContent='—';
+    latestDate.textContent='עוד אין שקילות';
+    deltaEl.textContent='נכניס את הראשונה?';
+    deltaEl.className='delta same';
+  }else{
+    const last=entries[entries.length-1];
+    latestWeight.textContent=Number(last.weight).toFixed(1);
+    latestDate.textContent=`השקילה האחרונה · ${fmtDate(last.date)}`;
+    if(entries.length>1){
+      const prev=entries[entries.length-2];
+      const diff=(last.weight-prev.weight);
+      if(Math.abs(diff)<0.05){
+        deltaEl.textContent='בדיוק כמו בפעם הקודמת';
+        deltaEl.className='delta same';
+      }else if(diff<0){
+        deltaEl.textContent=`↓ ${Math.abs(diff).toFixed(1)} ק״ג מהשקילה הקודמת`;
+        deltaEl.className='delta';
+      }else{
+        deltaEl.textContent=`↑ ${diff.toFixed(1)} ק״ג מהשקילה הקודמת`;
+        deltaEl.className='delta up';
+      }
+    }else{
+      deltaEl.textContent='השקילה הראשונה נשמרה';
+      deltaEl.className='delta same';
+    }
+  }
+
+  historyEl.innerHTML='';
+  if(!entries.length){
+    historyEl.innerHTML='<div class="empty">עוד רגע יהיה פה גרף 😌</div>';
+  }else{
+    [...entries].reverse().forEach(e=>{
+      const row=document.createElement('div');
+      row.className='item';
+      row.innerHTML=`
+        <div class="d">${fmtDate(e.date)}</div>
+        <div class="w">${Number(e.weight).toFixed(1)} ק״ג</div>
+        <div>
+          <button class="mini" data-edit="${e.id}">עריכה</button>
+          <button class="mini" data-delete="${e.id}">מחיקה</button>
+        </div>`;
+      historyEl.appendChild(row);
+    });
+  }
+  drawChart();
+}
+function drawChart(){
+  const svg=$('#chart');
+  svg.innerHTML='';
+  const W=360,H=230, pad={l:34,r:14,t:22,b:34};
+
+  if(entries.length<2){
+    svg.innerHTML = `<text x="180" y="115" text-anchor="middle" class="label" style="font-size:14px">הגרף יתחיל אחרי שתי שקילות</text>`;
+    return;
+  }
+
+  const weights=entries.map(e=>Number(e.weight));
+  let min=Math.min(...weights), max=Math.max(...weights);
+  const spread=Math.max(1.2,max-min);
+  min=Math.floor((min-spread*.35)*2)/2;
+  max=Math.ceil((max+spread*.35)*2)/2;
+
+  const x = i => pad.l + i*((W-pad.l-pad.r)/(entries.length-1));
+  const y = v => pad.t + (max-v)/(max-min)*(H-pad.t-pad.b);
+
+  for(let i=0;i<4;i++){
+    const val=max-(max-min)*(i/3);
+    const yy=y(val);
+    svg.insertAdjacentHTML('beforeend',`
+      <line x1="${pad.l}" y1="${yy}" x2="${W-pad.r}" y2="${yy}" class="grid"/>
+      <text x="${pad.l-7}" y="${yy+4}" text-anchor="end" class="label">${val.toFixed(1)}</text>`);
+  }
+
+  const pts=entries.map((e,i)=>`${x(i)},${y(Number(e.weight))}`).join(' ');
+  svg.insertAdjacentHTML('beforeend', `<polyline points="${pts}" class="trend"/>`);
+
+  entries.forEach((e,i)=>{
+    const xx=x(i), yy=y(Number(e.weight));
+    svg.insertAdjacentHTML('beforeend',`
+      <circle cx="${xx}" cy="${yy}" r="5.5" class="dot"/>
+      <text x="${xx}" y="${yy-12}" text-anchor="middle" class="value-label">${Number(e.weight).toFixed(1)}</text>
+      <text x="${xx}" y="${H-10}" text-anchor="middle" class="label">${fmtDate(e.date).slice(0,5)}</text>`);
+  });
+}
+function openNew(){
+  editingId=null;
+  dialogTitle.textContent='שקילה חדשה';
+  input.value='';
+  dialog.showModal();
+  setTimeout(()=>input.focus(),100);
+}
+function openEdit(id){
+  const e=entries.find(x=>x.id===id);
+  if(!e)return;
+  editingId=id;
+  dialogTitle.textContent='עריכת שקילה';
+  input.value=e.weight;
+  dialog.showModal();
+  setTimeout(()=>input.focus(),100);
+}
+$('#addBtn').addEventListener('click',openNew);
+$('#cancelBtn').addEventListener('click',()=>dialog.close());
+$('#weightForm').addEventListener('submit',(ev)=>{
+  ev.preventDefault();
+  const value=parseFloat(input.value);
+  if(!Number.isFinite(value)) return;
+  if(editingId){
+    const e=entries.find(x=>x.id===editingId);
+    if(e) e.weight=value;
+  }else{
+    entries.push({
+      id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      weight:value,
+      date:new Date().toISOString()
+    });
+  }
+  save(); render(); dialog.close();
+});
+historyEl.addEventListener('click',(ev)=>{
+  const edit=ev.target.dataset.edit;
+  const del=ev.target.dataset.delete;
+  if(edit) openEdit(edit);
+  if(del){
+    if(confirm('למחוק את השקילה הזאת?')){
+      entries=entries.filter(x=>x.id!==del);
+      save(); render();
+    }
+  }
+});
+
+function downloadBackup(){
+  const payload = {
+    app: 'עליתי?',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    entries: entries
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `aliti-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function restoreBackup(file){
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const restored = Array.isArray(data) ? data : data.entries;
+    if(!Array.isArray(restored)) throw new Error('bad format');
+
+    const cleaned = restored
+      .filter(x => x && Number.isFinite(Number(x.weight)) && x.date)
+      .map(x => ({
+        id: x.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random())),
+        weight: Number(x.weight),
+        date: new Date(x.date).toISOString()
+      }));
+
+    if(!cleaned.length && restored.length) throw new Error('bad entries');
+
+    if(!confirm(`לשחזר ${cleaned.length} שקילות מהגיבוי? זה יחליף את הנתונים שיש כרגע באפליקציה.`)) return;
+
+    entries = cleaned;
+    save();
+    render();
+    alert('השחזור הושלם ♥');
+  }catch(err){
+    alert('לא הצלחתי לקרוא את קובץ הגיבוי. תוודאי שזה קובץ גיבוי של "עליתי?".');
+  }
+}
+
+$('#backupBtn').addEventListener('click', downloadBackup);
+$('#restoreBtn').addEventListener('click', ()=>$('#restoreInput').click());
+$('#restoreInput').addEventListener('change', (ev)=>{
+  const file = ev.target.files && ev.target.files[0];
+  if(file) restoreBackup(file);
+  ev.target.value = '';
+});
+
+render();
+</script>
+</body>
+</html>
